@@ -21,3 +21,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 export default func;
 func.id = 'deploy_GasTank'; // id required to prevent reexecution
 func.tags = ['GasTank'];
+
+// const deployResult = await deploy('ContractX', {
+//   from: deployer,
+//   proxy: {
+//       proxyContract: 'OpenZeppelinTransparentProxy',
+//       execute: {
+//           methodName: "initialize",
+//           args: []
+//       }
+//   }
+// });

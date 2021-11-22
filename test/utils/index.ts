@@ -1,5 +1,6 @@
 import {Contract} from 'ethers';
 import {ethers} from 'hardhat';
+import {getMainnetSdk} from '@dethcrypto/eth-sdk-client';
 
 export async function setupUsers<T extends {[contractName: string]: Contract}>(
   addresses: string[],
@@ -21,7 +22,10 @@ export async function setupUser<T extends {[contractName: string]: Contract}>(
   for (const key of Object.keys(contracts)) {
     const signer = await ethers.getSigner(address);
 
+    // console.log(`signer`, signer);
+
     user[key] = contracts[key].connect(signer);
+    // console.log(`user`, key);
   }
   return user as {address: string} & T;
 }

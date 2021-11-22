@@ -8,7 +8,7 @@ export default defineConfig({
         WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
         COMP: '0xc00e94cb662c3520282e6f5717214004a7f26888',
         DAI: '0x6b175474e89094c44da98b954eedeac495271d0f',
-        USDC: '0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf',
+        USDC: '0xa2327a938febf5fec13bacfb16ae10ecbc4cbdcf', // <-- for abi, change USDC getContract('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48') in eth-sdk-client dir index.js
         pcUSDC: '0xd81b1a8b1ad00baa2d6609e0bae28a38713872f7',
       },
       DeFi: {

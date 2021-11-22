@@ -7,6 +7,9 @@ import '@typechain/hardhat';
 import 'solidity-coverage';
 import {node_url, accounts} from './utils/network';
 import '@nomiclabs/hardhat-etherscan';
+import '@nomiclabs/hardhat-ethers';
+import '@openzeppelin/hardhat-upgrades';
+import {tasks} from 'hardhat';
 
 // While waiting for hardhat PR: https://github.com/nomiclabs/hardhat/pull/1542
 if (process.env.HARDHAT_FORK) {
@@ -112,5 +115,5 @@ const config: HardhatUserConfig = {
       }
     : undefined,
 };
-
+tasks();
 export default config;

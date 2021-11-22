@@ -7,7 +7,7 @@ import {Contract} from 'ethers';
 const setup = deployments.createFixture(async () => {
   // Accounts & Forked Contract(s) Setup
   const {superUser} = await getNamedAccounts();
-
+  // console.log('unnamedAccounts', await getUnnamedAccounts());
   const fContracts = getMainnetSdk(await ethers.getSigner(superUser));
 
   const UniswapV2Router02 = fContracts.DeFi.UniswapV2.UniswapV2Router02;
@@ -26,6 +26,7 @@ const setup = deployments.createFixture(async () => {
     unnamedUsers: await setupUsers(await getUnnamedAccounts(), contracts),
     superUser: await setupUser(superUser, contracts),
   };
+
   return {
     ...contracts,
     ...users,
