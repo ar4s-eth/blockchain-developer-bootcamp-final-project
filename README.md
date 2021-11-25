@@ -1,5 +1,11 @@
 # Boilerplate for ethereum solidity smart contract development
 
+## NOTES
+
+- defining contract tests, they need to be pointed to "Contract_Implementation" when using `await ethers.getContract('Contract_Implementation')`, hardhat-deploy's proxy upgrades are kind of broken.
+- Node 14 is required to get the environment working.
+- yarn test is broken
+
 ## INSTALL
 
 ```bash
