@@ -1,115 +1,107 @@
-// import {expect} from './chai-setup';
-// import {ethers, deployments, getUnnamedAccounts, getNamedAccounts} from 'hardhat';
-// import {setupUser, setupUsers, setupNamedUsers} from './utils';
-// import {getMainnetSdk} from '@dethcrypto/eth-sdk-client';
-// import {GasTank} from '../typechain';
+import {expect} from './chai-setup';
+import {ethers, deployments, getUnnamedAccounts, getNamedAccounts} from 'hardhat';
+import {setupUser, setupUsers} from './utils';
+import {swapExactETHForTokens} from './helpers/uniswap-functions';
+import {getMainnetSdk} from '@dethcrypto/eth-sdk-client';
+import {GasTank, GasTank__factory} from '../typechain';
 
-// const setup = deployments.createFixture(async () => {
-//   await deployments.fixture('GasTank');
-//   const {superUser} = await getNamedAccounts();
+const setup = deployments.createFixture(async () => {
+  await deployments.fixture('GasTank');
+  const {superUser} = await getNamedAccounts();
 
-//   const fContracts = getMainnetSdk(ethers.provider.getSigner());
+  const _Contracts = getMainnetSdk(ethers.provider.getSigner());
+  const UniswapV2Router02 = _Contracts.DeFi.UniswapV2.UniswapV2Router02;
+  const WETH = _Contracts.Tokens.WETH;
+  const USDC = _Contracts.Tokens.USDC;
 
-//   const contracts = {
-//     GasTank: <GasTank>await ethers.getContract('GasTank'),
-//   };
+  const contracts = {
+    GasTank: <GasTank>await ethers.getContract('GasTank'),
+    UniswapV2Router02,
+    USDC,
+    WETH,
+  };
 
-//   const users = {
-//     namedUsers: await setupNamedUsers(await getNamedAccounts(), contracts),
-//     unnamedUsers: await setupUsers(await getUnnamedAccounts(), contracts),
-//     superUser: await setupUser(superUser, contracts),
-//   };
+  const users = {
+    unnamedUsers: await setupUsers(await getUnnamedAccounts(), contracts),
+    superUser: await setupUser(superUser, contracts),
+  };
 
-//   return {
-//     ...contracts,
-//     ...users,
-//     fContracts,
-//   };
-// });
+  return {
+    ...contracts,
+    ...users,
+    _Contracts,
+  };
+});
 
-// setup();
+describe('GasTank', function () {
+  const state = async function () {
+    return await setup();
+  };
+  describe('Initialization', function () {
+    it('superUser initial USDC balance of 0', async () => {
+      const {superUser} = await state();
+      const usdcBalanceWei = await superUser.USDC.balanceOf(superUser.address);
+      const usdcBalance = ethers.utils.formatUnits(usdcBalanceWei, 18);
+      expect(parseFloat(usdcBalance)).to.equal(0);
+    });
+    it('superUser initial ETH (balance of 1000 ETH)', async () => {
+      const {superUser} = await state();
+      const ethBalanceWei = await ethers.provider.getBalance(superUser.address);
+      const ethBalance = ethers.utils.formatEther(ethBalanceWei);
+      expect(parseFloat(ethBalance)).to.equal(10000);
+    });
+    it('Swap ETH for USDC', async function () {
+      const {superUser, USDC} = await state();
+      await swapExactETHForTokens(1, USDC, superUser.address);
+      const usdcBalanceWei = await USDC.balanceOf(superUser.address);
+      const usdcBalance = ethers.utils.formatUnits(usdcBalanceWei, 6);
+      expect(parseFloat(usdcBalance)).to.be.greaterThan(0);
+    });
+    it('superUser can send ETH to EOA', async function () {
+      const {unnamedUsers, superUser} = await state();
+      // console.log(`superUser`, superUser.signer);
+      const sender = superUser;
+      const receiver = unnamedUsers[1];
 
-// describe('GasTank', function () {
-//   it('event is logged', async function () {
-//     const {superUser, GasTank} = await setup();
-//     const testString = 'Peaches';
-//     await expect(superUser.GasTank.setTest(testString)).to.emit(GasTank, 'TestChanged').withArgs(testString);
-//   });
-//   it('initial ETH balance of 1000 ETH', async () => {
-//     const {superUser} = await setup();
+      //Create Tx Object
+      const tx = {
+        to: receiver.address,
+        value: ethers.utils.parseEther('1'),
+      };
 
-//     const ethBalanceWei = await ethers.provider.getBalance(superUser.address);
-//     const ethBalance = ethers.utils.formatEther(ethBalanceWei);
-//     expect(parseFloat(ethBalance)).to.equal(10000);
-//   });
-//   it('Send ETH to EAO', async function () {
-//     const {unnamedUsers, superUser} = await setup();
-//     const sender = superUser.GasTank.signer;
-//     const receiver = unnamedUsers[1];
+      // Sign and Send Tx - Wait for Receipt
+      const createReceipt = await sender.signer.sendTransaction(tx);
+      await createReceipt.wait();
 
-//     //Create Tx Object
-//     const tx = {
-//       to: receiver.address,
-//       value: ethers.utils.parseEther('1'),
-//     };
+      const senderEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address));
+      const receiverEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(receiver.address));
 
-//     // Sign and Send Tx - Wait for Receipt
-//     const createReceipt = await sender.sendTransaction(tx);
-//     await createReceipt.wait();
-
-//     const senderEthBalanceWei = await ethers.provider.getBalance(superUser.address);
-//     // const receiverEthBalanceWei = await ethers.provider.getBalance(receiver.address);
-//     const senderEthBalance = ethers.utils.formatEther(senderEthBalanceWei);
-//     // const receiverEthBalance = ethers.utils.formatEther(receiverEthBalanceWei);
-//     expect(parseFloat(senderEthBalance)).to.be.lessThan(10000);
-//   });
-//   it('Receive ETH at EOA', async function () {
-//     const {unnamedUsers, superUser} = await setup();
-//     const sender = superUser.GasTank.signer;
-//     const receiver = unnamedUsers[1];
-
-//     //Create Tx Object
-//     const tx = {
-//       to: receiver.address,
-//       value: ethers.utils.parseEther('1'),
-//     };
-
-//     // Sign and Send Tx - Wait for Receipt
-//     const createReceipt = await sender.sendTransaction(tx);
-//     await createReceipt.wait();
-
-//     const senderEthBalanceWei = await ethers.provider.getBalance(superUser.address);
-//     const receiverEthBalanceWei = await ethers.provider.getBalance(receiver.address);
-//     const senderEthBalance = ethers.utils.formatEther(senderEthBalanceWei);
-//     const receiverEthBalance = ethers.utils.formatEther(receiverEthBalanceWei);
-//     // console.log(`receiver balance`, receiverEthBalance);
-//     expect(parseFloat(receiverEthBalance)).to.be.greaterThan(10000);
-//   });
-//   it('GasTank fallback emits Log', async function () {
-//     const testObject = await setup();
-// testObject.namedUsers;
-// superUser.signer
-// const sender = superUser;
-// const receiver = GasTank;
-// console.log(`GasTank.adddress`, GasTank.address);
-// //Create Tx Object
-// const tx = {
-//   to: receiver.address,
-//   value: ethers.utils.parseEther('1'),
-// };
-// superUser.
-// // Sign and Send Tx - Wait for Receipt
-// const createReceipt = await sender.sendTransaction(tx);
-// await createReceipt.wait();
-// const senderEthBalanceWei = await ethers.provider.getBalance(superUser.address);
-// // const receiverEthBalanceWei = await ethers.provider.getBalance(receiver.address);
-// const senderEthBalance = ethers.utils.formatEther(senderEthBalanceWei);
-// console.log(`senderEthBalance`, senderEthBalance);
-// // const receiverEthBalance = ethers.utils.formatEther(receiverEthBalanceWei);
-// const contractBalanceWei = await ethers.provider.getBalance(GasTank.address);
-// const contractBalance = ethers.utils.formatEther(contractBalanceWei);
-// console.log(`GasTank Balance`, parseFloat(contractBalance));
-// console.log(`superGas`, superUser.GasTank.address);
-// await expect(superUser.GasTank).to.emit(GasTank, 'Log');
-//   });
-// });
+      expect(parseFloat(senderEthBalance)).to.be.lessThan(10000);
+      expect(parseFloat(receiverEthBalance)).to.be.greaterThan(10000);
+    });
+  });
+  describe('Contract Interaction', function () {
+    it('event is logged', async function () {
+      const {superUser, GasTank} = await state();
+      const testString = 'Peaches';
+      await expect(superUser.GasTank.setTest(testString)).to.emit(GasTank, 'TestChanged').withArgs(testString);
+    });
+    it('superUser can send ETH to GasTank', async function () {
+      // const {GasTank, superUser} = await state();
+      // const sender = superUser;
+      // const receiver = GasTank;
+      // //Create Tx Object
+      // const tx = {
+      //   to: receiver.address,
+      //   value: ethers.utils.parseEther('1'),
+      // };
+      // // Sign and Send Tx - Wait for Receipt
+      // const createReceipt = await sender.signer.sendTransaction(tx);
+      // await createReceipt.wait();
+      // const senderEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address));
+      // const receiverEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(receiver.address));
+      // expect(parseFloat(senderEthBalance)).to.be.lessThan(10000);
+      // expect(parseFloat(receiverEthBalance)).to.be.greaterThan(0);
+    });
+  });
+});
