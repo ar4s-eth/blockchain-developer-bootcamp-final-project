@@ -33,14 +33,6 @@ const setup = deployments.createFixture(async () => {
   };
 });
 
-// type sReturn = ReturnType<typeof setup>;
-// type set = (options?: unknown) => Promise<sReturn>;
-// type ExpandRecursively<T> = T extends object
-//   ? T extends infer O
-//     ? {[K in keyof O]: ExpandRecursively<O[K]>}
-//     : never
-//   : T;
-
 describe('GasTank', function () {
   describe('Initialization', function () {
     let GasTank_Instance: GasTank;
@@ -118,6 +110,21 @@ describe('GasTank', function () {
       const gasTankBalance = ethers.utils.formatEther(await ethers.provider.getBalance(GasTank_Instance.address));
       const GasTank_getBalance = ethers.utils.formatEther(await GasTank_Instance.getBalance());
       expect(parseFloat(GasTank_getBalance)).to.be.equals(parseFloat(gasTankBalance));
+    });
+    it('emit works', async function () {
+      const {superUser} = await setup();
+      const sender = superUser;
+      const receiver = GasTank_Instance;
+      //Create Tx Object
+      const tx = {
+        to: receiver.address,
+        value: ethers.utils.parseEther('1'),
+      };
+      // Sign and Send Tx - Wait for Receipt
+      const receipt = await sender.signer.sendTransaction(tx);
+      await receipt.wait();
+
+      await expect(GasTank_Instance.fallback()).to.emit(GasTank_Instance, 'DepositLog');
     });
   });
 });

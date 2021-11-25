@@ -7,21 +7,22 @@ import "hardhat/console.sol";
 contract GasTank is Proxied {
     string internal _prefix;
     string public test;
-    event FallbackLog(uint256 gas);
-    event ReceiveLog(uint256 gas);
+    // event FallbackLog(uint256 gas);
+    event DepositLog(uint256 gas);
     event TestChanged(string _test);
 
     // Fallback function must be declared as external.
-    fallback() external payable {
-        // send / transfer (forwards 2300 gas to this fallback function)
-        // call (forwards all of the gas)
-        emit FallbackLog(gasleft());
-    }
+    // fallback() external payable {
+    //     // send / transfer (forwards 2300 gas to this fallback function)
+    //     // call (forwards all of the gas)
+    //     // emit FallbackLog(gasleft());
+    // }
 
     receive() external payable {
         // send / transfer (forwards 2300 gas to this fallback function)
         // call (forwards all of the gas)
-        emit ReceiveLog(gasleft());
+        emit DepositLog(gasleft());
+        console.log(gasleft());
     }
 
     // Helper function to check the balance of this contract
