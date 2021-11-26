@@ -1,4 +1,5 @@
 import {defineConfig} from '@dethcrypto/eth-sdk';
+import hre from 'hardhat'
 
 export default defineConfig({
   noFollowProxies: true,

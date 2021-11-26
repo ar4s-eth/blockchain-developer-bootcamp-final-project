@@ -8,7 +8,7 @@ module.exports = {
   env: {
     commonjs: true,
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'prettier-plugin-solidity', 'solhint-plugin-prettier'],
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
   rules: {
     'no-empty': 'off',

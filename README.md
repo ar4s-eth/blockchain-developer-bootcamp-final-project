@@ -6,6 +6,33 @@
 - Node 14 is required to get the environment working.
 - yarn test is broken
 
+{
+"compilerOptions": {
+"target": "es5",
+"module": "commonjs",
+"strict": true,
+"resolveJsonModule": true,
+"esModuleInterop": true,
+"allowJs": true,
+"downlevelIteration": true,
+"moduleResolution": "node",
+"forceConsistentCasingInFileNames": true,
+"outDir": "dist"
+},
+"include": [
+"src/**/*.d.ts",
+"src/**/*.ts",
+"./hardhat.config.ts",
+"./scripts",
+"./deploy",
+"./test/**/*.ts",
+"./test/**/*.test.ts",
+"./eth-sdk/**/*",
+"typechain/**/*",
+"contracts.ts"
+]
+}
+
 ## INSTALL
 
 ```bash

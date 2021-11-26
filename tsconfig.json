@@ -1,25 +1,29 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "strict": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "downlevelIteration": true,
-    "moduleResolution": "node",
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist"
+  "target": "es5",
+  "module": "commonjs",
+  "strict": true,
+  "resolveJsonModule": true,
+  "esModuleInterop": true,
+  "allowJs": true,
+  "downlevelIteration": true,
+  "moduleResolution": "node",
+  "forceConsistentCasingInFileNames": true,
+  "outDir": "dist"
   },
   "include": [
-    "src/**/*.d.ts",
-    "src/**/*.ts",
-    "./hardhat.config.ts",
-    "./scripts",
-    "./deploy",
-    "./test/*",
-    "./eth-sdk/**/*",
-    "typechain/**/*",
-    "contracts.ts"
+  "./src/**/*.d.ts",
+  "./src/**/*.ts",
+  "./hardhat.config.ts",
+  "./scripts/*",
+  "./deploy/*",
+  "./test/**/*.ts",
+  "./test/**/*.test.ts",
+  "./utils/*",
+  "./eth-sdk/*",
+  "./typechain/*",
+  "./typechain/**/*",
+  "./node_modules/@dethcrypto/**/*",
+  "contracts.ts"
   ]
 }

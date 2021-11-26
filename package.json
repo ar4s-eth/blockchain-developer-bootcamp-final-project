@@ -30,6 +30,7 @@
     "@typechain/hardhat": "^3.0.0",
     "@types/chai": "^4.2.22",
     "@types/json-schema": "^7.0.9",
+    "@types/lodash": "^4.14.177",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
@@ -76,7 +77,7 @@
     "fork:execute": "node ./_scripts.js fork:run",
     "fork:deploy": "node ./_scripts.js fork:deploy",
     "fork:deploy:all": "yarn eth-sdk && node ./_scripts.js fork:deploy",
-    "fork:dev": "yarn eth-sdk && node ./_scripts.js fork:dev hardhat --blockNumber 13621542",
+    "fork:dev": "node ./_scripts.js fork:dev hardhat --blockNumber 13621542",
     "fork:node": "node ./_scripts.js fork:node",
     "fork:test": "node ./_scripts.js fork:test hardhat --blockNumber 13621542"
   },

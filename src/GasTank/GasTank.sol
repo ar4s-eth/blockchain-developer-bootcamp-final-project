@@ -9,20 +9,22 @@ contract GasTank is Proxied {
     string public test;
     // event FallbackLog(uint256 gas);
     event DepositLog(uint256 gas);
+    event FallbackLog(string text);
     event TestChanged(string _test);
 
     // Fallback function must be declared as external.
-    // fallback() external payable {
-    //     // send / transfer (forwards 2300 gas to this fallback function)
-    //     // call (forwards all of the gas)
-    //     // emit FallbackLog(gasleft());
-    // }
+    fallback() external payable {
+        // send / transfer (forwards 2300 gas to this fallback function)
+        // call (forwards all of the gas)
+        emit FallbackLog("hi");
+        console.log("fallback");
+    }
 
     receive() external payable {
         // send / transfer (forwards 2300 gas to this fallback function)
         // call (forwards all of the gas)
         emit DepositLog(gasleft());
-        console.log(gasleft());
+        console.log("receive");
     }
 
     // Helper function to check the balance of this contract
