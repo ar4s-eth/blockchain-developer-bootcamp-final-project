@@ -1,4 +1,4 @@
-import {expect} from './chai-setup';
+import {expect} from './_chai-setup';
 import {ethers, deployments, getUnnamedAccounts} from 'hardhat';
 import {GreetingsRegistry} from '../typechain';
 import {setupUsers} from './utils';

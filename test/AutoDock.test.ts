@@ -1,14 +1,14 @@
-import {expect} from './chai-setup';
+import {expect} from './_chai-setup';
 import {ethers, deployments, getUnnamedAccounts, getNamedAccounts} from 'hardhat';
 import {setupUser, setupUsers} from './utils';
 import {swapExactETHForTokens} from './helpers/uniswap-functions';
 import {getMainnetSdk} from '@dethcrypto/eth-sdk-client';
-import {GasTank} from '../typechain';
+import {AutoDock} from '../typechain';
 import { UniswapV2Router02, USDC } from '@dethcrypto/eth-sdk-client/types';
 import { BN , expectRevert} from '@openzeppelin/test-helpers';
 
 const setup = deployments.createFixture(async () => {
-  await deployments.fixture('GasTank');
+  await deployments.fixture('AutoDock');
   // Accounts & Forked Contract(s) Setup
   const {superUser} = await getNamedAccounts();
 
@@ -18,7 +18,7 @@ const setup = deployments.createFixture(async () => {
   const USDC = _Contracts.Tokens.USDC;
 
   const contracts = {
-    GasTank: <GasTank>await ethers.getContract('GasTank_Implementation'),
+    AutoDock: <AutoDock>await ethers.getContract('AutoDock_Implementation'),
     UniswapV2Router02,
     USDC,
     WETH,
@@ -36,9 +36,9 @@ const setup = deployments.createFixture(async () => {
 });
 
 
-describe('GasTank', function () {
+describe('AutoDock', function () {
   describe('Initialization', function () {
-    let _GasTank: GasTank;
+    let _AutoDock: AutoDock;
     let _UniswapV2Router02: UniswapV2Router02;
     let _USDC: USDC;
 
@@ -48,8 +48,8 @@ describe('GasTank', function () {
 
 
     it('superUser initial USDC balance of 0', async () => {
-      const {superUser, GasTank, UniswapV2Router02, USDC } = await setup();
-        _GasTank = GasTank;
+      const {superUser, AutoDock, UniswapV2Router02, USDC } = await setup();
+        _AutoDock = AutoDock;
         _UniswapV2Router02 = UniswapV2Router02;
         _USDC = USDC;
 
@@ -101,11 +101,11 @@ describe('GasTank', function () {
   });
   describe('Contract Interaction', function () {
 
-    let _GasTank: GasTank;
-    let _UniswapV2Router02: UniswapV2Router02;
-    let _USDC: USDC;
-    //@ts-ignore
-    let _superUser;
+    // let _AutoDock: AutoDock;
+    // let _UniswapV2Router02: UniswapV2Router02;
+    // let _USDC: USDC;
+    // //@ts-ignore
+    // let _superUser;
 
     beforeEach(async function () {
       this.value = new BN(10000);
@@ -113,25 +113,25 @@ describe('GasTank', function () {
 
     it('event is logged', async function () {
 
-      const {superUser, GasTank, UniswapV2Router02, USDC } = await setup();
+      const {superUser, AutoDock, UniswapV2Router02, USDC } = await setup();
 
-        _GasTank = GasTank;
-        _UniswapV2Router02 = UniswapV2Router02;
-        _USDC = USDC;
-        //@ts-ignore
-        _superUser
+        // _AutoDock = AutoDock;
+        // _UniswapV2Router02 = UniswapV2Router02;
+        // _USDC = USDC;
+        // //@ts-ignore
+        // _superUser
 
       const testString = 'Peaches';
 
-      await expect(superUser.GasTank.setTest(testString)).to.emit(GasTank, 'TestChanged').withArgs(testString);
+      await expect(superUser.AutoDock.setTest(testString)).to.emit(AutoDock, 'TestChanged').withArgs(testString);
     });
-    it('superUser can send ETH to GasTank', async () => {
-      const {superUser, GasTank} = await setup();
-      const balance = await GasTank.getBalance()
+    it('superUser can send ETH to AutoDock', async () => {
+      const {superUser, AutoDock} = await setup();
+      const balance = await AutoDock.getBalance()
       //@ts-ignore
       console.log(`balance`, parseFloat(balance))
       const sender = superUser;
-      const receiver = GasTank;
+      const receiver = AutoDock;
 
       // Create Tx Object
       const tx = {
@@ -150,11 +150,30 @@ describe('GasTank', function () {
       expect(parseFloat(senderEthBalance)).to.be.lessThan(10000);
       expect(parseFloat(receiverEthBalance)).to.be.greaterThan(0);
     });
-    it('ETH sent to GasTank is partially refunded to sender', async () => {
-      const {superUser, GasTank} = await setup();
+    it('AutoDock reverts() ETH Deposit when full', async () => {
+      const {superUser, AutoDock} = await setup();
 
       const sender = superUser;
-      const receiver = GasTank;
+      const senderBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address))
+      console.log(`sender Balance`, senderBalance);
+      const receiver = AutoDock;
+
+      // Create Tx Object
+      const tx = {
+        to: receiver.address,
+        value: ethers.utils.parseEther('11'),
+      };
+
+      //@ts-ignore
+      await expectRevert(sender.signer.sendTransaction(tx), "AutoDock is full");
+      expect(senderBalance).to.equal(ethers.utils.formatEther(await ethers.provider.getBalance(sender.address)));
+    });
+    it('ETH sent to AutoDock is partially refunded to sender', async () => {
+      const {superUser, AutoDock} = await setup();
+
+      const sender = superUser;
+      const senderBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address))
+      const receiver = AutoDock;
 
       // Create Tx Object
       const tx = {
@@ -173,19 +192,20 @@ describe('GasTank', function () {
 
       expect(parseFloat(Number(receiverEthBalance).toFixed())).to.be.within(0.2, 1);
       expect(parseFloat(Number(senderEthBalance).toFixed())).to.be.within(9995, 10000);
+      expect(senderBalance).to.not.equal(ethers.utils.formatEther(await ethers.provider.getBalance(sender.address)));
     });
-    it('Calling GasTank getBalance() returns correct balance', async () => {
-      const {superUser, GasTank} = await setup();
-      const gasTankBalance = ethers.utils.formatEther(await ethers.provider.getBalance(GasTank.address));
-      const GasTank_getBalance = ethers.utils.formatEther(await GasTank.getBalance());
+    it('Calling AutoDock getBalance() returns correct balance', async () => {
+      const {AutoDock} = await setup();
+      const AutoDockBalance = ethers.utils.formatEther(await ethers.provider.getBalance(AutoDock.address));
+      const AutoDock_getBalance = ethers.utils.formatEther(await AutoDock.getBalance());
 
-      expect(parseFloat(GasTank_getBalance)).to.be.equals(parseFloat(gasTankBalance));
+      expect(parseFloat(AutoDock_getBalance)).to.be.equals(parseFloat(AutoDockBalance));
     });
     it('emit works', async function () {
-      const {superUser, GasTank} = await setup();
+      const {superUser, AutoDock} = await setup();
 
       const sender = superUser;
-      const receiver = GasTank;
+      const receiver = AutoDock;
 
       //Create Tx Object
       const tx = {
@@ -198,7 +218,7 @@ describe('GasTank', function () {
       const createReceipt = await sender.signer.sendTransaction(tx);
       await createReceipt.wait();
 
-      await expect(GasTank.fallback()).to.emit(GasTank, 'DepositLog');
+      await expect(AutoDock.fallback()).to.emit(AutoDock, 'DepositLog');
     });
   });
 });

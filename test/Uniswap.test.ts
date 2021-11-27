@@ -1,4 +1,4 @@
-import {expect} from './chai-setup';
+import {expect} from './_chai-setup';
 import {ethers, deployments, getUnnamedAccounts, getNamedAccounts} from 'hardhat';
 import {setupUsers, setupUser} from './utils';
 import {swapExactETHForTokens} from './helpers/uniswap-functions';

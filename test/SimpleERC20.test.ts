@@ -1,4 +1,4 @@
-import {expect} from './chai-setup';
+import {expect} from './_chai-setup';
 import {ethers, deployments, getUnnamedAccounts, getNamedAccounts} from 'hardhat';
 import {IERC20} from '../typechain';
 import {setupUser, setupUsers} from './utils';

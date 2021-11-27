@@ -11,7 +11,7 @@ contract Depositor {
 
 
 
-contract GasTank is Proxied {
+contract AutoDock is Proxied {
     string internal _prefix;
     string public test;
     address public target = msg.sender;
@@ -52,10 +52,9 @@ contract GasTank is Proxied {
     receive() external payable {
         // send / transfer (forwards 2300 gas to this fallback function)
         // call (forwards all of the gas)
-        if (address(this).balance > 10 ether) {
-            revert("GasTank is already full");
-            console.log("revert");
-        }
+        (bool success) = address(this).balance < 10 ether;
+        require(success, "AutoDock is full");
+
         payable(target).transfer(msg.value/2);
         // target.transfer(msg.value/100);
         emit DepositLog(gasleft());
