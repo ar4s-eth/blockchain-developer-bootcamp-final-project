@@ -24,6 +24,7 @@
   "./typechain/*",
   "./typechain/**/*",
   "./node_modules/@dethcrypto/**/*",
+  "./node_modules/@openzeppelin/test-helpers/**/*",
   "contracts.ts"
   ]
 }
