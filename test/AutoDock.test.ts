@@ -1,11 +1,13 @@
+//@ts-nocheck
 import {expect} from './_chai-setup';
 import {ethers, deployments, getUnnamedAccounts, getNamedAccounts} from 'hardhat';
 import {setupUser, setupUsers} from './utils';
 import {swapExactETHForTokens} from './helpers/uniswap-functions';
+import {getHumanReadableBalance, sendN} from './helpers/token-functions';
 import {getMainnetSdk} from '@dethcrypto/eth-sdk-client';
 import {AutoDock} from '../typechain';
-import { UniswapV2Router02, USDC } from '@dethcrypto/eth-sdk-client/types';
-import { BN , expectRevert} from '@openzeppelin/test-helpers';
+import {UniswapV2Router02, USDC} from '@dethcrypto/eth-sdk-client/types';
+import {BN, expectRevert} from '@openzeppelin/test-helpers';
 
 const setup = deployments.createFixture(async () => {
   await deployments.fixture('AutoDock');
@@ -16,12 +18,14 @@ const setup = deployments.createFixture(async () => {
   const UniswapV2Router02 = _Contracts.DeFi.UniswapV2.UniswapV2Router02;
   const WETH = _Contracts.Tokens.WETH;
   const USDC = _Contracts.Tokens.USDC;
+  const DAI = _Contracts.Tokens.DAI;
 
   const contracts = {
     AutoDock: <AutoDock>await ethers.getContract('AutoDock_Implementation'),
     UniswapV2Router02,
     USDC,
     WETH,
+    DAI,
   };
 
   const users = {
@@ -31,95 +35,66 @@ const setup = deployments.createFixture(async () => {
 
   return {
     ...contracts,
-    ...users
+    ...users,
   };
 });
 
-
 describe('AutoDock', function () {
   describe('Initialization', function () {
-    let _AutoDock: AutoDock;
-    let _UniswapV2Router02: UniswapV2Router02;
-    let _USDC: USDC;
+    // let _AutoDock: AutoDock;
+    // let _UniswapV2Router02: UniswapV2Router02;
+    // let _USDC: USDC;
 
-    beforeEach(async function () {
-
-    });
-
+    beforeEach(async function () {});
 
     it('superUser initial USDC balance of 0', async () => {
-      const {superUser, AutoDock, UniswapV2Router02, USDC } = await setup();
-        _AutoDock = AutoDock;
-        _UniswapV2Router02 = UniswapV2Router02;
-        _USDC = USDC;
+      const {superUser, AutoDock, UniswapV2Router02, USDC} = await setup();
 
-      const usdcBalanceWei = await superUser.USDC.balanceOf(superUser.address);
-      const usdcBalance = ethers.utils.formatUnits(usdcBalanceWei, 18);
-
-      expect(parseFloat(usdcBalance)).to.equal(0);
+      expect(await getHumanReadableBalance(superUser.USDC)).to.equal(0.0);
     });
     it('superUser initial balance of 1000 ETH)', async () => {
       const {superUser} = await setup();
 
-      const ethBalanceWei = await ethers.provider.getBalance(superUser.address);
-      const ethBalance = ethers.utils.formatEther(ethBalanceWei);
-
-      expect(parseFloat(ethBalance)).to.equal(10000);
+      expect(await getHumanReadableBalance(superUser)).to.equal(10000.0);
     });
-    it('Swap ETH for USDC', async () =>  {
-      const {superUser, USDC} = await setup();
+    it('Swap ETH for USDC', async () => {
+      const {superUser, USDC, UniswapV2Router02} = await setup();
+      const swapper = superUser;
 
-      await swapExactETHForTokens(_UniswapV2Router02, 1, USDC, superUser.address);
+      await swapExactETHForTokens(UniswapV2Router02, '1', swapper.USDC);
 
-      const usdcBalanceWei = await USDC.balanceOf(superUser.address);
-      const usdcBalance = ethers.utils.formatUnits(usdcBalanceWei, 6);
-      expect(parseFloat(usdcBalance)).to.be.greaterThan(0);
+      expect(await getHumanReadableBalance(swapper.USDC)).to.be.at.least(1.0);
     });
     it('superUser can send ETH to EOA', async () => {
-
       const {unnamedUsers, superUser} = await setup();
       const sender = superUser;
       const receiver = unnamedUsers[1];
 
-      //Create Tx Object
-      const tx = { //@ts-ignore
-        to: receiver.address,
-        value: ethers.utils.parseEther('1'),
-      };
+      await sendN(sender, '42', receiver);
 
-      // Sign and Send Tx - Wait for Receipt
-      //@ts-ignore
-      const createReceipt = await sender.signer.sendTransaction(tx);
-      await createReceipt.wait();
-
-      const senderEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address));
-      const receiverEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(receiver.address));
-
-      expect(parseFloat(senderEthBalance)).to.be.lessThan(10000);
-      expect(parseFloat(receiverEthBalance)).to.be.greaterThan(10000);
+      expect(await getHumanReadableBalance(sender)).to.be.lessThan(10000);
+      expect(await getHumanReadableBalance(receiver)).to.be.greaterThan(10000);
     });
   });
   describe('Contract Interaction', function () {
-
     // let _AutoDock: AutoDock;
     // let _UniswapV2Router02: UniswapV2Router02;
     // let _USDC: USDC;
     // //@ts-ignore
     // let _superUser;
 
-    beforeEach(async function () {
-      this.value = new BN(10000);
-    });
+    // beforeEach(async function () {
+    //   this.value = new BN(10000);
+    // });
 
     it('event is logged', async function () {
+      const {superUser, AutoDock, UniswapV2Router02, USDC} = await setup();
 
-      const {superUser, AutoDock, UniswapV2Router02, USDC } = await setup();
-
-        // _AutoDock = AutoDock;
-        // _UniswapV2Router02 = UniswapV2Router02;
-        // _USDC = USDC;
-        // //@ts-ignore
-        // _superUser
+      // _AutoDock = AutoDock;
+      // _UniswapV2Router02 = UniswapV2Router02;
+      // _USDC = USDC;
+      // //@ts-ignore
+      // _superUser
 
       const testString = 'Peaches';
 
@@ -127,72 +102,46 @@ describe('AutoDock', function () {
     });
     it('superUser can send ETH to AutoDock', async () => {
       const {superUser, AutoDock} = await setup();
-      const balance = await AutoDock.getBalance()
-      //@ts-ignore
-      console.log(`balance`, parseFloat(balance))
       const sender = superUser;
       const receiver = AutoDock;
 
-      // Create Tx Object
-      const tx = {
-        to: receiver.address,
-        value: ethers.utils.parseEther('1'),
-      };
+      await sendN(sender, '4.2', receiver);
 
-      // Sign and Send Tx - Wait for Receipt
-      //@ts-ignore
-      const createReceipt = await sender.signer.sendTransaction(tx);
-      await createReceipt.wait();
-
-      const senderEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address));
-      const receiverEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(receiver.address));
-
-      expect(parseFloat(senderEthBalance)).to.be.lessThan(10000);
-      expect(parseFloat(receiverEthBalance)).to.be.greaterThan(0);
+      expect(await getHumanReadableBalance(sender)).to.be.lessThan(10000);
+      expect(await getHumanReadableBalance(receiver)).to.be.greaterThan(0);
     });
     it('AutoDock reverts() ETH Deposit when full', async () => {
       const {superUser, AutoDock} = await setup();
-
       const sender = superUser;
-      const senderBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address))
-      console.log(`sender Balance`, senderBalance);
       const receiver = AutoDock;
 
-      // Create Tx Object
-      const tx = {
-        to: receiver.address,
-        value: ethers.utils.parseEther('11'),
-      };
-
-      //@ts-ignore
-      await expectRevert(sender.signer.sendTransaction(tx), "AutoDock is full");
-      expect(senderBalance).to.equal(ethers.utils.formatEther(await ethers.provider.getBalance(sender.address)));
+      expectRevert(await sendN(sender, '42', receiver), 'AutoDock is full').catch();
+      expect(await getHumanReadableBalance(sender)).to.be.equal(
+        parseFloat(ethers.utils.formatEther(await ethers.provider.getBalance(sender.address)))
+      ); // compares original amount to final amount
     });
     it('ETH sent to AutoDock is partially refunded to sender', async () => {
       const {superUser, AutoDock} = await setup();
-
       const sender = superUser;
-      const senderBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address))
       const receiver = AutoDock;
 
-      // Create Tx Object
-      const tx = {
-        to: receiver.address,
-        value: ethers.utils.parseEther('1'),
-      };
+      await sendN(sender, '4.2', receiver);
 
+      expect(await getHumanReadableBalance(receiver)).to.be.within(0.1, 4.2);
+      expect(await getHumanReadableBalance(sender)).to.be.within(9995, 10000);
+      expect(await getHumanReadableBalance(sender)).to.not.equal(
+        ethers.utils.formatEther(await ethers.provider.getBalance(sender.address))
+      );
+    });
+    it.only('superUser can send USDC to AutoDock', async () => {
+      const {superUser, unnamedUsers, AutoDock, DAI, USDC, UniswapV2Router02} = await setup();
+      const sender = superUser;
+      const receiver = AutoDock;
 
-      // Sign and Send Tx - Wait for Receipt
-      //@ts-ignore
-      const createReceipt = await sender.signer.sendTransaction(tx);
-      await createReceipt.wait();
-
-      const senderEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(sender.address));
-      const receiverEthBalance = ethers.utils.formatEther(await ethers.provider.getBalance(receiver.address));
-
-      expect(parseFloat(Number(receiverEthBalance).toFixed())).to.be.within(0.2, 1);
-      expect(parseFloat(Number(senderEthBalance).toFixed())).to.be.within(9995, 10000);
-      expect(senderBalance).to.not.equal(ethers.utils.formatEther(await ethers.provider.getBalance(sender.address)));
+      await swapExactETHForTokens(UniswapV2Router02, '1000', superUser.USDC);
+      await sendN(sender.USDC, '1000', receiver);
+      console.log(await AutoDock.totalSupply());
+      console.log(await getHumanReadableBalance(AutoDock));
     });
     it('Calling AutoDock getBalance() returns correct balance', async () => {
       const {AutoDock} = await setup();
